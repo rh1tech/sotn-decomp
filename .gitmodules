@@ -26,7 +26,8 @@
 	url = https://github.com/ProjectOblivion/sotn_utils.git
 [submodule "tools/psyz"]
 	path = tools/psyz
-	url = https://github.com/Xeeynamo/psyz
+	url = https://github.com/rh1tech/psyz.git
+	branch = rp2350
 [submodule "tools/saturn/sound-player"]
 	path = tools/saturn/sound-player
 	url = https://github.com/sozud/saturn-sound-player.git
