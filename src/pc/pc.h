@@ -31,6 +31,7 @@ enum TestMode {
 };
 struct InitGameParams {
     const char* diskPath;
+    bool discOnly; // read all game files from diskPath, not disks/us
     enum TestMode testMode;
     int stage;
     int player;
@@ -45,7 +46,7 @@ struct InitGameParams {
 
 struct FileOpenRead {
     const char* filename;
-    FILE* file;
+    void* file; // opaque, read it with FileRead()
     size_t length;
     void* param;
 };
@@ -76,8 +77,19 @@ void Replay_OnFrame(void);
 bool Replay_DidDrift(void);
 bool Replay_DemoAborted(void);
 
+// Optional source for game files, e.g. a disc image. When a provider is set,
+// every path under "disks/" is served by it instead of the host filesystem.
+// Paths are passed through unchanged ("disks/us/BIN/F_GAME.BIN").
+typedef struct {
+    void* (*open)(const char* path, size_t* length);
+    size_t (*read)(void* handle, void* dst, size_t offset, size_t len);
+    void (*close)(void* handle);
+} FileProvider;
+void FileSetProvider(const FileProvider* provider);
+
 bool FileOpenRead(
     bool (*cb)(const struct FileOpenRead*), const char* filename, void* param);
+size_t FileRead(const struct FileOpenRead* f, void* dst, size_t len);
 int FileReadToBuf(const char* filename, void* dst, int offset, size_t maxlen);
 bool FileAsString(bool (*cb)(const struct FileAsString* file),
                   const char* filename, void* param);

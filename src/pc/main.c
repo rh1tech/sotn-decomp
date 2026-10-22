@@ -57,6 +57,8 @@ static void printHelp(void) {
     printf("Usage: ./sotn [OPTIONS]\n");
     printf("Options:\n");
     printf("  --disk <path>      file name of the second track\n");
+    printf("  --disc-only        read game files from the --disk image, not "
+           "disks/us\n");
     printf("  --stage <stage>    stage name or ID (e.g., nz0)\n");
     printf("  --player <name>    player name or ID (e.g. ric)\n");
     printf("  --demo <number>    play a specific Tactics demo\n");
@@ -87,6 +89,7 @@ static bool parseArgs(
     struct InitGameParams* outParams, int argc, char* argv[]) {
     assert(!!outParams);
     outParams->diskPath = NULL;
+    outParams->discOnly = false;
     outParams->testMode = NO_TEST;
     outParams->stage = -1;
     outParams->player = -1;
@@ -105,6 +108,8 @@ static bool parseArgs(
         }
         if (strcmp(argv[i], "--disk") == 0 && i + 1 < argc) {
             outParams->diskPath = argv[++i];
+        } else if (strcmp(argv[i], "--disc-only") == 0) {
+            outParams->discOnly = true;
         } else if (strcmp(argv[i], "--stage") == 0 && i + 1 < argc) {
             outParams->stage = PARSE_PARAM(argv[++i], allowed_stages);
             if (outParams->stage < 0) {

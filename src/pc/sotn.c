@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "pc.h"
+#include "disc_provider.h"
 #include "spawn_point.h"
 #include "dra.h"
 #include "psyz/log.h"
@@ -126,6 +127,12 @@ bool InitGame(struct InitGameParams* params) {
     Replay_Init(params);
     SpawnPoint_Init(params);
     Psyz_SetVSyncCb(GameLoopCallback);
+    if (params->discOnly) {
+        if (!params->diskPath ||
+            !DiscProvider_Mount(&disc_stdio_backend, params->diskPath)) {
+            return false;
+        }
+    }
     if (params->diskPath) {
         if (Psyz_CdSetDiskPath(params->diskPath) < 0) {
             WARNF("failed to parse CD layout at '%s'. Music will be disabled",

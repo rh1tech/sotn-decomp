@@ -155,6 +155,8 @@ set(SOURCE_FILES_PC
     src/pc/pc.c
     src/pc/cutscene_pc.c
     src/pc/io.c
+    src/pc/cdimage.c
+    src/pc/disc_provider.c
     src/pc/sim_pc.c
     src/pc/pl_arc.c
     src/pc/pl_ric.c
