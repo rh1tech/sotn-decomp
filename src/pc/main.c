@@ -166,6 +166,10 @@ static bool parseArgs(
     return true;
 }
 
+#ifndef PLATFORM_RP2350
+#include <psyz/dbgserver.h>
+#endif
+
 int Main(int argc, char* argv[]) {
     struct InitGameParams params;
     if (!parseArgs(&params, argc, argv)) {
@@ -179,6 +183,14 @@ int Main(int argc, char* argv[]) {
     if (!InitGame(&params)) {
         return -1;
     }
+#ifndef PLATFORM_RP2350
+    // SOTN_DBGSERVER=<port>: psyz debug HTTP server (/screenshot, /vram, ...).
+    // Started after InitGame, which installs its own VSync callback.
+    const char* dbg = getenv("SOTN_DBGSERVER");
+    if (dbg && atoi(dbg) > 0) {
+        Psyz_DebugServer(atoi(dbg));
+    }
+#endif
     MainGame();
     ResetGame();
     if (params.replayPath && Replay_DidDrift()) {
