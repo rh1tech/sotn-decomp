@@ -401,6 +401,13 @@ static void LoadStagePrg(const char* name) {
     ovlName[i] = '\0';
     if (!LoadStageOverlay(ovlName, &g_api.o)) {
         ERRORF("stage '%s' was not loaded", ovlName);
+        // ports without every stage built can stop cleanly here instead of
+        // running on with an empty overlay table
+        extern void Platform_StageMissing(const char* name)
+            __attribute__((weak));
+        if (Platform_StageMissing) {
+            Platform_StageMissing(ovlName);
+        }
     }
 }
 
