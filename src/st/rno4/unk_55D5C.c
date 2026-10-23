@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "rno4.h"
 
+#ifdef VERSION_PC
+#include "../step_towards.h"
+#else
 INCLUDE_ASM("st/rno4/nonmatchings/unk_55D5C", StepTowards);
+#endif
 
 void func_us_801D5DC8(Primitive* prim) {
     s32 yPos;
@@ -191,7 +195,7 @@ void func_us_801D5E90(Entity* self) {
             }
 
         case 1:
-            if (!AnimateEntity(D_us_8018236C, self, explosion)) {
+            if (!AnimateEntity(D_us_8018236C, self)) {
                 self->facingLeft ^= 0x1;
                 self->animCurFrame = 1;
                 SetSubStep(2);
@@ -313,7 +317,7 @@ void func_us_801D5E90(Entity* self) {
             }
 
         case 1:
-            if (!AnimateEntity(D_us_8018236C, self, explosion)) {
+            if (!AnimateEntity(D_us_8018236C, self)) {
                 self->facingLeft ^= 0x1;
                 self->animCurFrame = 1;
                 SetSubStep(2);

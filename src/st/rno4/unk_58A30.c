@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 #include "rno4.h"
 
+// The PC build uses the shared C instead: bomb_knight_pc.c,
+// jack_o_bones_pc.c, nova_skeleton_pc.c, imp_pc.c
+#ifndef VERSION_PC
+
 INCLUDE_ASM("st/rno4/nonmatchings/unk_58A30", func_us_801BBE58_from_rnz1);
 
 INCLUDE_ASM("st/rno4/nonmatchings/unk_58A30", func_us_801BC650_from_rnz1);
@@ -411,3 +415,4 @@ INCLUDE_ASM("st/rno4/nonmatchings/unk_58A30", EntityImp);
 #undef BALLOON_POD_DEATH_PARTICLE
 
 #include "../e_imp_death_particle.h"
+#endif
