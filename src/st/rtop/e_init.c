@@ -91,7 +91,7 @@ EInit g_EInitBreakable = {ANIMSET_OVL(1), 0x00, 0x00, PAL_NONE, ENEMY_BREAKABLE}
 
 #include "../e_init_common.h"
 
-static EInit __unused__ = {ANIMSET_OVL(1), 0x00, 0x00, PAL_NONE, ENEMY_COMMON};
+static UNUSED EInit g_EInitUnusedRTOP = {ANIMSET_OVL(1), 0x00, 0x00, PAL_NONE, ENEMY_COMMON};
 EInit g_EInitRTOPCommon = {ANIMSET_OVL(2), 0x00, 0x00, PAL_NONE, ENEMY_INTERACTABLE};
 EInit g_EInitTombstone = {ANIMSET_OVL(5), 0x15, 0x4D, PAL_TOMBSTONE, ENEMY_TOMBSTONE};
 EInit g_EInitYorick = {ANIMSET_OVL(6), 0x01, 0x56, PAL_YORICK, ENEMY_YORICK};

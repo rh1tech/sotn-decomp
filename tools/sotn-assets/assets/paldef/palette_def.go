@@ -42,6 +42,20 @@ func (h *handler) Extract(e assets.ExtractArgs) error {
 		resolveSymbols(&defs[i], e.Symbol, e.RamBase)
 	}
 	doc := paletteDefs{Cluts: cluts, Defs: defs}
+	self := e.Name + ".palbin"
+	inline := false
+	for _, def := range defs {
+		for _, ref := range append(append([]paletteEntry{}, def.Data...), def.Entries...) {
+			if ref.Name == self {
+				inline = true
+			}
+		}
+	}
+	if inline {
+		for off := e.Start; off+1 < e.End; off += 2 {
+			doc.Raw = append(doc.Raw, uint16(e.Data[off])|uint16(e.Data[off+1])<<8)
+		}
+	}
 	return util.WriteJsonFile(assetPath(e.AssetDir, e.Name), doc)
 }
 
@@ -60,6 +74,18 @@ func (h *handler) Build(e assets.BuildArgs) error {
 	// keep the sized declaration so PAL_BULK's LEN() works, while palettes
 	// referenced mid-array can only be declared as incomplete arrays
 	declared := map[string]bool{}
+	if len(doc.Raw) > 0 {
+		// inline colours: the asset symbol itself holds them
+		declared[e.Name] = true
+		content.WriteString(fmt.Sprintf("static u16 %s[] = {", e.Name))
+		for i, w := range doc.Raw {
+			if i%8 == 0 {
+				content.WriteString("\n   ")
+			}
+			content.WriteString(fmt.Sprintf(" 0x%04X,", w))
+		}
+		content.WriteString("\n};\n")
+	}
 	for _, def := range doc.Defs {
 		for _, ref := range append(append([]paletteEntry{}, def.Data...), def.Entries...) {
 			sym := util.RemoveFileNameExt(filepath.Base(ref.Name))
@@ -215,6 +241,9 @@ type paletteDefs struct {
 	// cluts[] content as indices into Defs, preserving the original order
 	Cluts []int        `json:"cluts"`
 	Defs  []paletteDef `json:"defs"`
+	// the asset's own words, kept when a def points at colours stored
+	// inline in it (NZ1): the header then defines the asset symbol itself
+	Raw []uint16 `json:"raw,omitempty"`
 }
 
 // readPaletteDefs parses consecutive pal_def blobs starting at 'start' until
@@ -244,6 +273,13 @@ func readPaletteDefs(r io.ReadSeeker, baseAddr psx.Addr, start, end int) ([]pale
 		// a palette op has a small kind and frequency, anything else is a
 		// pointer and marks the beginning of the cluts[] array
 		if kind < palCopy || kind > palBulkCopy || freq > 0xFF {
+			// NZ1 stores palette colours inline between two defs: skip
+			// words until the next op, or until a pointer to a def already
+			// read (the cluts[] array)
+			if len(defs) > 0 && !pointsToDef(psx.Addr(op), defs) {
+				off += 4
+				continue
+			}
 			break
 		}
 		def := paletteDef{Kind: kind, Flags: flags, Freq: freq, addr: addr}
@@ -309,6 +345,15 @@ func readPaletteEntries(r io.ReadSeeker, baseAddr, defAddr psx.Addr, def *palett
 		}
 	}
 	return nil
+}
+
+func pointsToDef(a psx.Addr, defs []paletteDef) bool {
+	for _, d := range defs {
+		if d.addr == a {
+			return true
+		}
+	}
+	return false
 }
 
 // readClutsArray reads the cluts pointer array at 'off' until 'end',
