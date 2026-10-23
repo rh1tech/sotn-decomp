@@ -20,6 +20,10 @@ static const struct SpawnPoint s_SpawnPoints[] = {
     {STAGE_NO4, 5, 176, 396, "caverns-soul"},
     {STAGE_RNO0, 0, 64, 132, "reverse-marble-soul"},
     {STAGE_RNO4, 5, 208, 132, "reverse-caverns-soul"},
+    {STAGE_DAI, 9, 96, 120, "chapel-stained-glass"},
+    {STAGE_RDAI, 3, 64, 144, "anti-chapel-panthers"},
+    {STAGE_RDAI, 9, 96, 368, "anti-chapel-spectral-sword"},
+    {STAGE_RDAI, 11, 416, 1024, "anti-chapel-archers"},
 };
 
 enum SpawnPointStep {

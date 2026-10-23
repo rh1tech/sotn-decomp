@@ -13,7 +13,7 @@ extern char g_RdaiUnk33DebugText[];
 #define BALLOON_POD_DEATH_PARTICLE E_IMP_DEATH_PARTICLE
 #define BALLOON_POD_LOCAL_DEATH_PARTICLE
 #endif
-#if defined(VERSION_PSP)
+#if defined(VERSION_PSP) || defined(VERSION_PC)
 #define BALLOON_POD_PAD_PRESSED g_pads[1].pressed
 #else
 extern u16 g_pads_1_pressed;
