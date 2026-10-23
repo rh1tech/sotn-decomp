@@ -61,12 +61,13 @@ static void Run(char* line) {
         printf("~R OK go %s %s\n", StageName(stage), argv[2]);
     } else if (!strcmp(argv[0], "stat")) {
         printf("~R STAT stage=%s room=%d x=%d y=%d hp=%d/%d state=%d step=%d "
-               "dead=%d\n",
+               "dead=%d at=%d,%d\n",
                StageName(g_StageId), CurrentRoom(),
                g_Tilemap.scrollX.i.hi + PLAYER.posX.i.hi,
                g_Tilemap.scrollY.i.hi + PLAYER.posY.i.hi, g_Status.hp,
                g_Status.hpMax, g_GameState, g_GameStep,
-               (g_Player.status & PLAYER_STATUS_DEAD) != 0);
+               (g_Player.status & PLAYER_STATUS_DEAD) != 0, g_Tilemap.left,
+               g_Tilemap.top);
     } else if (!strcmp(argv[0], "rooms")) {
         if (g_api.o.rooms == NULL) {
             printf("~R ROOMS 0\n");
@@ -74,8 +75,10 @@ static void Run(char* line) {
         }
         for (i = 0; g_api.o.rooms[i].left != 0x40; i++) {
             const RoomHeader* r = &g_api.o.rooms[i];
-            printf("~R ROOM %d %d %d %d %d %d\n", i, r->left, r->top, r->right,
-                   r->bottom, r->load.tileLayoutId);
+            // tilesetId 0xFF: a loading room (the way to another stage)
+            printf("~R ROOM %d %d %d %d %d %d %d\n", i, r->left, r->top,
+                   r->right, r->bottom, r->load.tileLayoutId,
+                   r->load.tilesetId);
         }
         printf("~R ROOMS %d\n", i);
     } else if (!strcmp(argv[0], "god") && argc >= 2) {
