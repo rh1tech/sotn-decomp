@@ -652,14 +652,41 @@ files:
       - start: 0
         vram: 0x80180000
         assets:
-          #- [0x2C, sprite_banks, sprite_banks]
-          #- [0x8C, paldef, palette_def] # embedded interleaved clut, see issue #2401
-          #- [0x1C4, layers, layers]
-          #- [0x5A4, gfx_banks, graphics_banks]
+          - [0x2C, sprite_banks, sprite_banks]
+          - [0x90, paldef, palette_def] # 0x8C ends the sprite bank list; embedded clut at 0x158 (issue #2401)
+          - [0x1D4, layers, layers]
+          - [0x3AC, gfx_banks, graphics_banks]
           - [0x618, layout, entity_layouts]
           - [0x7C0, skip]
           - [0x3488, rooms, rooms]
           - [0x3544, skip]
+          - [0x44FC, cmpgfx, D_801844FC, 128, 128, 4]
+          - [0x50D8, cmpgfx, D_801850D8, 128, 128, 4]
+          - [0x5FC8, cmpgfx, D_80185FC8, 128, 128, 4]
+          - [0x6BB8, cmpgfx, D_80186BB8, 128, 128, 4]
+          - [0x8720, cmpgfx, D_80188720, 128, 128, 4]
+          - [0x90CC, cmpgfx, D_801890CC, 128, 128, 4]
+          - [0x9FD4, cmpgfx, D_80189FD4, 128, 128, 4]
+          - [0xA704, cmpgfx, D_8018A704, 128, 128, 4]
+          - [0xB264, cmpgfx, D_8018B264, 128, 128, 4]
+          - [0xB9A0, cmpgfx, D_8018B9A0, 128, 128, 4]
+          - [0xC4DC, cmpgfx, D_8018C4DC, 128, 128, 4]
+          - [0xD2EC, cmpgfx, D_8018D2EC, 128, 128, 4]
+          - [0xDF80, cmpgfx, D_8018DF80, 128, 128, 4]
+          - [0xE650, cmpgfx, D_8018E650, 128, 128, 4]
+          - [0xF584, cmpgfx, D_8018F584, 128, 128, 4]
+          - [0x105E4, cmpgfx, D_801905E4, 128, 128, 4]
+          - [0x111F4, cmpgfx, D_801911F4, 128, 128, 4]
+          - [0x11CB0, cmpgfx, D_80191CB0, 128, 128, 4]
+          - [0x1257C, cmpgfx, D_8019257C, 128, 128, 4]
+          - [0x12D20, cmpgfx, D_80192D20, 128, 128, 4]
+          - [0x137E4, cmpgfx, D_801937E4, 128, 128, 4]
+          - [0x141F0, cmpgfx, D_801941F0, 128, 128, 4]
+          - [0x14460, cmpgfx, D_80194460, 128, 128, 4]
+          - [0x14E14, cmpgfx, D_80194E14, 128, 128, 4]
+          - [0x1519C, binary, D_8019519C, h] # compressed gfx + the stage palettes palette_def reads after it
+          - [0x160B0, skip]
+          - [0x341C8, skip] # sprites
           #- [0x4CE0, cutscene, cutscene_data]
           #- [0x4E60, skip]
   - target: disks/us/ST/NO2/NO2.BIN
