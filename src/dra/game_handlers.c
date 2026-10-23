@@ -545,6 +545,13 @@ void HandlePlay(void) {
 #else
         g_StageId = func_800F16D0();
 #endif
+#ifdef VERSION_PC
+        {
+            // debug warps (src/pc/spawn_point.c) pick the stage themselves
+            extern s32 SpawnPoint_NextStage(s32 stageId);
+            g_StageId = SpawnPoint_NextStage(g_StageId);
+        }
+#endif
         g_GpuBuffers[1].draw.isbg = 0;
         g_GpuBuffers[0].draw.isbg = 0;
         HideAllBackgroundLayers();

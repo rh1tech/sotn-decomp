@@ -32,12 +32,15 @@ static const struct SpawnPoint s_SpawnPoints[] = {
 
 enum SpawnPointStep {
     SpawnPoint_Off,
+    SpawnPoint_WaitLoad, // SpawnPoint_Warp: the stage is (re)loading
     SpawnPoint_PickRoom,
     SpawnPoint_PlacePlayer,
 };
 
 static enum SpawnPointStep s_Step = SpawnPoint_Off;
 static const struct SpawnPoint* s_Spawn = NULL;
+static struct SpawnPoint s_Warp;
+static s32 s_WarpStage = -1;
 static void (*s_InitRoomEntities)(s32 layoutId) = NULL;
 
 static const struct SpawnPoint* FindSpawnPoint(const char* name) {
@@ -67,9 +70,19 @@ void SpawnPoint_Init(const struct InitGameParams* params) {
     }
 }
 
+static bool SpawnPoint_FindFloor(s32* outX, s32* outY);
+
 void SpawnPoint_OnFrame(void) {
     const RoomHeader* room;
 
+    if (s_Step == SpawnPoint_WaitLoad) {
+        // the new overlay is in once the load sequence reaches Play_Init
+        if (g_GameState != Game_Play || g_GameStep != Play_Init ||
+            g_StageId != s_Spawn->stageId) {
+            return;
+        }
+        s_Step = SpawnPoint_PickRoom;
+    }
     if (s_Step != SpawnPoint_PickRoom) {
         return;
     }
@@ -101,6 +114,10 @@ static void SpawnPoint_PlacePlayerNow(void) {
 
     x = s_Spawn->x;
     y = s_Spawn->y;
+    if ((x < 0 || y < 0) && !SpawnPoint_FindFloor(&x, &y)) {
+        x = 128;
+        y = 128;
+    }
 
     g_PlayerX = x;
     g_PlayerY = y;
@@ -119,6 +136,69 @@ static void SpawnPoint_PlacePlayerNow(void) {
 static void SpawnPoint_InitRoomEntities(s32 layoutId) {
     SpawnPoint_PlacePlayerNow();
     s_InitRoomEntities(layoutId);
+}
+
+// Somewhere to stand, in room pixels: floor under the feet (posY + 0x19,
+// as the player's own checks) and nothing solid where the body goes. The
+// room's layers are in by the time InitRoomEntities runs; the closest spot
+// to the middle of the first screen wins.
+static bool SpawnPoint_FindFloor(s32* outX, s32* outY) {
+    Collider col;
+    s32 x, y, dy, best = -1, d;
+    s32 w = g_Tilemap.hSize << 8, h = g_Tilemap.vSize << 8;
+    bool clear;
+
+    g_Tilemap.scrollX.i.hi = 0; // CheckCollision is relative to the camera
+    g_Tilemap.scrollY.i.hi = 0;
+    for (y = 32; y < h - 32; y += 4) {
+        for (x = 16; x < w - 16; x += 8) {
+            g_api.CheckCollision(x, y + 0x19, &col, 0);
+            if (!(col.effects & EFFECT_SOLID)) {
+                continue;
+            }
+            clear = true;
+            for (dy = -0x18; dy <= 0x14 && clear; dy += 8) {
+                g_api.CheckCollision(x, y + dy, &col, 0);
+                clear = col.effects == EFFECT_NONE;
+            }
+            if (!clear) {
+                continue;
+            }
+            d = abs(x - 128) + abs(y - 120);
+            if (best < 0 || d < best) {
+                best = d;
+                *outX = x;
+                *outY = y;
+            }
+        }
+    }
+    if (best < 0) {
+        INFOF("spawn: no floor in the room");
+    }
+    return best >= 0;
+}
+
+void SpawnPoint_Warp(s32 stageId, s32 roomIndex, s32 x, s32 y) {
+    s_Warp.stageId = stageId;
+    s_Warp.roomIndex = roomIndex;
+    s_Warp.x = x;
+    s_Warp.y = y;
+    s_Warp.name = "warp";
+    s_Spawn = &s_Warp;
+    s_Step = SpawnPoint_WaitLoad;
+    s_WarpStage = stageId;
+    // what a stage exit does: reload through Play_PrepareNextStage, which
+    // takes the stage from SpawnPoint_NextStage
+    D_80097C98 = 0;
+    g_GameStep = Play_PrepareNextStage;
+}
+
+s32 SpawnPoint_NextStage(s32 stageId) {
+    if (s_WarpStage >= 0) {
+        stageId = s_WarpStage;
+        s_WarpStage = -1;
+    }
+    return stageId;
 }
 
 void SpawnPoint_HookOverlay(Overlay* o) {

@@ -53,6 +53,15 @@ static int parseStrParam(
     }
     return -1;
 }
+int ParseStageName(const char* name) {
+    return PARSE_PARAM(name, allowed_stages);
+}
+const char* StageName(int stageId) {
+    if (stageId < 0 || stageId >= LEN(allowed_stages)) {
+        return "?";
+    }
+    return allowed_stages[stageId];
+}
 static void printHelp(void) {
     printf("Usage: ./sotn [OPTIONS]\n");
     printf("Options:\n");

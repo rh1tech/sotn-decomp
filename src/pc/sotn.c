@@ -116,9 +116,11 @@ bool InitDraData(void);
 
 s32 func_800EDB58(u8 primType, s32 count);
 
+void DebugCmd_OnFrame(void);
 static void GameLoopCallback(void) {
     Replay_OnFrame();
     SpawnPoint_OnFrame();
+    DebugCmd_OnFrame();
 }
 
 struct InitGameParams g_GameParams;

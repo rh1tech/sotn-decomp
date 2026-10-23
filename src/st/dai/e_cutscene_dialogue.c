@@ -201,7 +201,11 @@ void SetCutsceneEvents(u8* ptr) {
     g_Dialogue.eventCur = ptr;
 #else
 static void SetCutsceneEvents(u8* ptr) {
+#ifdef VERSION_PC
+    g_Dialogue.eventCur = CS_PTR(ptr);
+#else
     g_Dialogue.eventCur = ptr + 0x100000;
+#endif
 #endif
     g_Dialogue.timer = 0;
     g_Dialogue.hasEvents = 1;
@@ -536,6 +540,8 @@ void EntityCutsceneDialogue(Entity* self) {
                     ptr |= (u_long)*g_Dialogue.scriptCur++;
 #ifdef VERSION_PSP
                     ptr += (u_long)cutscene_script_ptr;
+#elif defined(VERSION_PC)
+                    ptr = (u_long)CS_PTR(ptr);
 #else
                 ptr += 0x100000;
 #endif
@@ -551,6 +557,8 @@ void EntityCutsceneDialogue(Entity* self) {
 #ifdef VERSION_PSP
                     ptr += (u_long)cutscene_script_ptr;
                     g_Dialogue.scriptCur = (u8*)ptr;
+#elif defined(VERSION_PC)
+                    g_Dialogue.scriptCur = CS_PTR(ptr);
 #else
                 g_Dialogue.scriptCur = (u8*)ptr + 0x100000;
 #endif
@@ -566,6 +574,8 @@ void EntityCutsceneDialogue(Entity* self) {
 #ifdef VERSION_PSP
                     ptr += (u_long)cutscene_script_ptr;
                     g_Dialogue.scriptCur = (u8*)ptr;
+#elif defined(VERSION_PC)
+                    g_Dialogue.scriptCur = CS_PTR(ptr);
 #else
                 g_Dialogue.scriptCur = (u8*)ptr + 0x100000;
 #endif
@@ -632,6 +642,8 @@ void EntityCutsceneDialogue(Entity* self) {
                             ptr = (u_long)&D_894568C;
                             break;
                         }
+#elif defined(VERSION_PC)
+                    ptr = (u_long)CS_PTR(ptr);
 #else
                     ptr += 0x100000;
 #endif

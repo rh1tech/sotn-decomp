@@ -3,6 +3,8 @@
 #include <game.h>
 #include <string.h>
 #include "overlay.h"
+#include "../pc.h"
+#include <cutscene.h>
 #include "../../st/top/top.h"
 
 extern AbbreviatedOverlay2 g_Overlay;
@@ -12,9 +14,26 @@ extern LayoutEntity* entityLayoutVertical[];
 extern PfnEntityUpdate* PfnEntityUpdates;
 extern LayoutEntity** g_pStObjLayoutHorizontal;
 extern LayoutEntity** g_pStObjLayoutVertical;
+extern u8 cutscene_data[];
+extern u8 gfx_portrait_alucard[];
+extern u8 gfx_portrait_maria[];
+extern u8 gfx_portrait_richter[];
+
+// the cutscene script holds PSX addresses (src/pc/cutscene_pc.c)
+static void InitCutscenePc(void) {
+    static const CutsceneSymbolRange symbols[] = {
+        {cutscene_data, 0x80182C08, 0x80182E44 - 0x80182C08},
+        {gfx_portrait_alucard, 0x80187934, 0xD80},
+        {gfx_portrait_maria, 0x801886B4, 0xD80},
+        {gfx_portrait_richter, 0x80189434, 0xD80},
+    };
+    CutscenePcAlloc(symbols, LEN(symbols));
+}
+
 void Psyz_ModuleStart(void* param) {
     Overlay* o = param;
 
+    InitCutscenePc();
     memcpy(o, &g_Overlay, sizeof(AbbreviatedOverlay2));
     PfnEntityUpdates = EntityUpdates;
     g_pStObjLayoutHorizontal = entityLayoutHorizontal;
