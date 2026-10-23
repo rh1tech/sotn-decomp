@@ -40,6 +40,7 @@ enum SpawnPointStep {
 static enum SpawnPointStep s_Step = SpawnPoint_Off;
 static const struct SpawnPoint* s_Spawn = NULL;
 static struct SpawnPoint s_Warp;
+static s32 s_PrefX = 128, s_PrefY = 120; // where FindFloor looks first
 static s32 s_WarpStage = -1;
 static void (*s_InitRoomEntities)(s32 layoutId) = NULL;
 
@@ -98,8 +99,36 @@ void SpawnPoint_OnFrame(void) {
         CheckAndDoLevelUp();
     }
     room = &g_api.o.rooms[s_Spawn->roomIndex];
-    g_Tilemap.left = room->left;
-    g_Tilemap.top = room->top;
+    // The game loads the first room in rooms[] containing this screen, and
+    // small rooms can sit inside bigger ones listed later: use a screen
+    // only the wanted room has (its top-left corner when it is free).
+    {
+        s32 x, y, i, cx = room->left, cy = room->top;
+        bool found = false;
+
+        for (y = room->top; y <= room->bottom && !found; y++) {
+            for (x = room->left; x <= room->right && !found; x++) {
+                for (i = 0; i < s_Spawn->roomIndex; i++) {
+                    const RoomHeader* r = &g_api.o.rooms[i];
+                    if (x >= r->left && x <= r->right && y >= r->top &&
+                        y <= r->bottom) {
+                        break;
+                    }
+                }
+                if (i == s_Spawn->roomIndex) {
+                    cx = x;
+                    cy = y;
+                    found = true;
+                }
+            }
+        }
+        g_Tilemap.left = cx;
+        g_Tilemap.top = cy;
+        // and stand there: on a shared screen the game would move the
+        // player into the other room
+        s_PrefX = (cx - room->left) * 256 + 128;
+        s_PrefY = (cy - room->top) * 256 + 120;
+    }
     D_8003C730 = 1;
     s_Step = SpawnPoint_PlacePlayer;
 }
@@ -141,7 +170,7 @@ static void SpawnPoint_InitRoomEntities(s32 layoutId) {
 // Somewhere to stand, in room pixels: floor under the feet (posY + 0x19,
 // as the player's own checks) and nothing solid where the body goes. The
 // room's layers are in by the time InitRoomEntities runs; the closest spot
-// to the middle of the first screen wins.
+// to the middle of the screen PickRoom chose wins.
 static bool SpawnPoint_FindFloor(s32* outX, s32* outY) {
     Collider col;
     s32 x, y, dy, best = -1, d;
@@ -164,7 +193,7 @@ static bool SpawnPoint_FindFloor(s32* outX, s32* outY) {
             if (!clear) {
                 continue;
             }
-            d = abs(x - 128) + abs(y - 120);
+            d = abs(x - s_PrefX) + abs(y - s_PrefY);
             if (best < 0 || d < best) {
                 best = d;
                 *outX = x;

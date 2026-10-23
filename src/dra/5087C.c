@@ -32,6 +32,10 @@ static s32 D_801375B0;
 static s32 D_801375B4;
 static s32 D_801375B8;
 static RoomLoadDefHolder D_801375BC;
+#ifdef VERSION_PC
+// the room being loaded or last loaded (src/pc/debug_cmd.c)
+RoomLoadDef* PcCurrentRoomLoad(void) { return D_801375BC.def; }
+#endif
 #ifdef VERSION_PSP
 bool g_canRevealMap;
 #endif

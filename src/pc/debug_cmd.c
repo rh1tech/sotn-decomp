@@ -20,6 +20,8 @@ int Platform_DebugCmdLine(char* out, int n) __attribute__((weak));
 int ParseStageName(const char* name);
 const char* StageName(int stageId);
 
+RoomLoadDef* PcCurrentRoomLoad(void);
+
 static bool s_God;
 
 static s32 CurrentRoom(void) {
@@ -28,9 +30,10 @@ static s32 CurrentRoom(void) {
     if (g_api.o.rooms == NULL) {
         return -1;
     }
+    // the room the game loaded (camera locks can narrow g_Tilemap's
+    // bounds, and small rooms can share corners with bigger ones)
     for (i = 0; g_api.o.rooms[i].left != 0x40; i++) {
-        if (g_api.o.rooms[i].left == g_Tilemap.left &&
-            g_api.o.rooms[i].top == g_Tilemap.top) {
+        if (PcCurrentRoomLoad() == &g_api.o.rooms[i].load) {
             return i;
         }
     }
