@@ -73,3 +73,6 @@ u8 D_8019222C[] = {
 u8 D_80192B68[] = {
 #include <gen/D_80192B68.h>
 };
+u16 D_80192DD8[] = {
+#include <gen/D_80192DD8.h>
+};

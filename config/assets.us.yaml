@@ -1028,7 +1028,8 @@ files:
           - [0x11678, cmpgfx, D_80191678, 128, 128, 4]
           - [0x1222C, cmpgfx, D_8019222C, 128, 128, 4]
           - [0x12B68, cmpgfx, D_80192B68, 128, 128, 4]
-          - [0x12DD8, skip]
+          - [0x12DD8, palette, D_80192DD8, 16]
+          - [0x137D8, skip]
   - target: disks/us/ST/ST0/ST0.BIN
     asset_path: assets/st/st0
     src_path: src/st/st0
@@ -1516,7 +1517,8 @@ files:
           - [0x9928, cmpgfx, D_80189928, 128, 128, 4]
           - [0xADC4, cmpgfx, D_8018ADC4, 128, 128, 4]
           - [0xB778, cmpgfx, D_8018B778, 128, 128, 4]
-          - [0xC680, skip]
+          - [0xC680, palette, D_8018C680, 16]
+          - [0xCE20, skip]
   - target: disks/us/ST/RNO2/RNO2.BIN
     asset_path: assets/st/rno2
     src_path: src/st/rno2
@@ -1747,7 +1749,8 @@ files:
         - [0x10D74, cmpgfx, D_80190D74, 128, 128, 4]
         - [0x11C18, cmpgfx, D_80191C18, 128, 128, 4]
         - [0x11DCC, cmpgfx, D_80191DCC, 128, 128, 4]
-        - [0x12884, skip]
+        - [0x12884, palette, D_80192884, 16]
+        - [0x13084, skip]
 
   - target: disks/us/ST/RTOP/RTOP.BIN
     asset_path: assets/st/rtop

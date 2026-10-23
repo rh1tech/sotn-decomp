@@ -47,3 +47,6 @@ u8 D_8018ADC4[] = {
 u8 D_8018B778[] = {
 #include "gen/D_8018B778.h"
 };
+u16 D_8018C680[] = {
+#include "gen/D_8018C680.h"
+};
