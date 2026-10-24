@@ -124,7 +124,6 @@ void DrawEntitiesHitbox(s32 drawMode) {
     }
 }
 
-#ifndef VERSION_PC
 
 u16 D_80137EF8[0x30];
 
@@ -132,7 +131,11 @@ u16 D_800AC910[] = {
 #ifndef VERSION_US
     '踪', '眷', '翔', '彷', '徨', '苺', '獰', '賤', '贄',
 #endif
+#ifdef VERSION_PC
+    0x9F54, // '鬱' in Shift-JIS (the PC sources are UTF-8)
+#else
     '鬱', // last one should be a copyright symbol
+#endif
 };
 
 u8 D_800AC914[][30] = {
@@ -510,8 +513,6 @@ u16* func_80106A28(u16 ch, u16 kind) {
     }
     return D_80137EF8;
 }
-
-#endif
 
 bool LoadMonsterLibrarianPreview(s32 monsterId) {
     if (g_IsUsingCd)

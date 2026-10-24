@@ -1809,3 +1809,8 @@ void func_80105428(void) {
         PlaySfx(SFX_SAVE_COFFIN_SWISH);
     }
 }
+
+#ifdef VERSION_PC
+// src/pc/debug_cmd.c "save": the save coffin's sequence step
+s32 Pc_SaveCoffinStep(void) { return D_801379BC; }
+#endif

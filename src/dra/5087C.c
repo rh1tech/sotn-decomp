@@ -1993,3 +1993,8 @@ void RunMainEngine(void) {
         break;
     }
 }
+
+#ifdef VERSION_PC
+// src/pc/debug_cmd.c "save": the room's save coffin is up
+s32 Pc_SaveRoomActive(void) { return D_80137598; }
+#endif

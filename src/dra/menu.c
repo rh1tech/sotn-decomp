@@ -11,6 +11,9 @@
 #endif
 
 u16* func_80106A28(u32 arg0, u16 kind);
+#ifdef VERSION_PC
+u16 Pc_NextSjis(const char** str); // src/pc/krom.c
+#endif
 
 // BSS
 static s32 D_801375CC;
@@ -2260,16 +2263,15 @@ void func_800F98AC(const char* str, u32 y) {
     }
     y = func_800F548C(y);
 
-#ifdef VERSION_PC
-    NOT_IMPLEMENTED;
-    return;
-#endif
-
     while (*str != 0) {
         // Loads a big-endian u16 from str.
         // This is connected to shift-jis.
+#ifdef VERSION_PC
+        ch16 = Pc_NextSjis(&str); // UTF-8 in the PC sources
+#else
         ch16 = *str++ << 8;
         ch16 += *str++;
+#endif
         bitmap = (u8*)func_80106A28(ch16, 0);
         for (i = 0; i < 0x60; i++) {
             D_8013794C[i] = *bitmap++;
@@ -2318,10 +2320,6 @@ void func_800F99B8(const char* str, u32 y, bool arg2) {
         y &= ~0x200;
     }
     y = func_800F548C(y);
-#ifdef VERSION_PC
-    NOT_IMPLEMENTED;
-    return;
-#endif
     while (*str != 0) {
         var_s2 = 0;
         ch = *str++;
@@ -2334,8 +2332,13 @@ void func_800F99B8(const char* str, u32 y, bool arg2) {
             var_s2 = 2;
         } else {
             // load ch16 as a big-endian value corresponding with shift-jis
+#ifdef VERSION_PC
+            str--;
+            ch16 = Pc_NextSjis(&str); // UTF-8 in the PC sources
+#else
             ch16 = ch << 8;
             ch16 += *str++;
+#endif
             if (ch16 == RIGHT_DOUBLE_QUOTATION_MARK) {
                 str += 2;
             }

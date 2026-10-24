@@ -156,6 +156,7 @@ set(SOURCE_FILES_PC
     src/pc/debug_cmd.c
     src/pc/pc.c
     src/pc/cutscene_pc.c
+    src/pc/krom.c
     src/pc/io.c
     src/pc/cdimage.c
     src/pc/disc_provider.c
@@ -2022,6 +2023,10 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     include
     src/dra
 )
+
+# src/pc/krom.c: the BIOS font it embeds
+set_source_files_properties(src/pc/krom.c PROPERTIES COMPILE_DEFINITIONS
+    "KROM_FONT_DIR=\"${CMAKE_CURRENT_SOURCE_DIR}/tools/psyz/nugget/openbios/charset\"")
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC
     _USE_MATH_DEFINES # needed for msvc

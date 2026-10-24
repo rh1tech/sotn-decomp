@@ -9,6 +9,7 @@
 //   stat                 stage, room, position, HP, game state
 //   rooms                the current stage's rooms (rooms[] rows, and the
 //                        fg layer params: 0x20 is a save room)
+//   save                 the save coffin: active, step, room flags, player
 //   god 0|1              keep HP, MP and hearts full
 //   playtest 0|1         god mode, and every enemy (bosses too) at 1 HP:
 //                        a whole play-through quickly (also --play-test)
@@ -58,6 +59,13 @@ static s32 CurrentRoom(void) {
     return -1;
 }
 
+// Richter's prologue (st0) and the rest of the game are set up apart (the
+// HUD, the player): the game never goes between them without a restart,
+// and a warp across would keep the old ones
+static bool CrossesPrologue(s32 stage) {
+    return (stage == STAGE_ST0) != (g_StageId == STAGE_ST0);
+}
+
 static void Run(char* line) {
     char* argv[6];
     s32 argc = 0, i, stage;
@@ -72,9 +80,11 @@ static void Run(char* line) {
     }
     if (!strcmp(argv[0], "go") && argc >= 3) {
         stage = ParseStageName(argv[1]);
-        if (stage < 0 || g_GameState != Game_Play) {
+        if (stage < 0 || g_GameState != Game_Play || CrossesPrologue(stage)) {
             printf("~R ERR go %s: %s\n", argv[1],
-                   stage < 0 ? "unknown stage" : "not in gameplay");
+                   stage < 0                    ? "unknown stage"
+                   : g_GameState != Game_Play ? "not in gameplay"
+                                                : "st0 needs a boot");
             return;
         }
         SpawnPoint_Warp(stage, atoi(argv[2]), argc >= 5 ? atoi(argv[3]) : -1,
@@ -82,7 +92,7 @@ static void Run(char* line) {
         printf("~R OK go %s %s\n", StageName(stage), argv[2]);
     } else if (!strcmp(argv[0], "near") && argc >= 5) {
         stage = ParseStageName(argv[1]);
-        if (stage < 0 || g_GameState != Game_Play) {
+        if (stage < 0 || g_GameState != Game_Play || CrossesPrologue(stage)) {
             printf("~R ERR near %s\n", argv[1]);
             return;
         }
@@ -97,6 +107,12 @@ static void Run(char* line) {
                g_Status.hpMax, g_GameState, g_GameStep,
                (g_Player.status & PLAYER_STATUS_DEAD) != 0, g_Tilemap.left,
                g_Tilemap.top);
+    } else if (!strcmp(argv[0], "save")) {
+        extern s32 Pc_SaveRoomActive(void);
+        extern s32 Pc_SaveCoffinStep(void);
+        printf("~R SAVE active=%d step=%d flags=%d pstep=%d/%d px=%d c730=%d\n",
+               Pc_SaveRoomActive(), Pc_SaveCoffinStep(), D_8003C708.flags,
+               PLAYER.step, PLAYER.step_s, PLAYER.posX.i.hi, D_8003C730);
     } else if (!strcmp(argv[0], "rooms")) {
         if (g_api.o.rooms == NULL) {
             printf("~R ROOMS 0\n");
