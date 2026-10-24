@@ -9,6 +9,7 @@
 //   rooms                the current stage's rooms (rooms[] rows)
 //   god 0|1              keep HP, MP and hearts full
 //   hp N                 set HP (god mode off): 1 and a hit, or 0, for Game Over
+//   fx 0|1|2             reduced effects: never, when running late, always
 #include <game.h>
 #include "pc.h"
 #include "spawn_point.h"
@@ -18,6 +19,9 @@
 #include <string.h>
 
 int Platform_DebugCmdLine(char* out, int n) __attribute__((weak));
+// reduced effects: 0 full, 1 when running late, 2 always (platform option)
+void Platform_SetFxMode(int mode) __attribute__((weak));
+int Platform_GetFxMode(void) __attribute__((weak));
 int ParseStageName(const char* name);
 const char* StageName(int stageId);
 
@@ -85,6 +89,11 @@ static void Run(char* line) {
                    r->load.tilesetId);
         }
         printf("~R ROOMS %d\n", i);
+    } else if (!strcmp(argv[0], "fx") && argc >= 2) {
+        if (Platform_SetFxMode) {
+            Platform_SetFxMode(atoi(argv[1]));
+        }
+        printf("~R OK fx %d\n", Platform_GetFxMode ? Platform_GetFxMode() : -1);
     } else if (!strcmp(argv[0], "hp") && argc >= 2) {
         s_God = false;
         g_Status.hp = atoi(argv[1]);
