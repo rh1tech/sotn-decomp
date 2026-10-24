@@ -41,6 +41,7 @@ static enum SpawnPointStep s_Step = SpawnPoint_Off;
 static const struct SpawnPoint* s_Spawn = NULL;
 static struct SpawnPoint s_Warp;
 static s32 s_PrefX = 128, s_PrefY = 120; // where FindFloor looks first
+static s32 s_NearX = -1, s_NearY = -1;    // SpawnPoint_WarpNear's point
 static s32 s_WarpStage = -1;
 static void (*s_InitRoomEntities)(s32 layoutId) = NULL;
 
@@ -122,12 +123,33 @@ void SpawnPoint_OnFrame(void) {
                 }
             }
         }
+        // SpawnPoint_WarpNear: the screen of its point, when the room owns it
+        if (s_NearX >= 0) {
+            s32 px = room->left + s_NearX / 256, py = room->top + s_NearY / 256;
+            for (i = 0; i < s_Spawn->roomIndex; i++) {
+                const RoomHeader* r = &g_api.o.rooms[i];
+                if (px >= r->left && px <= r->right && py >= r->top &&
+                    py <= r->bottom) {
+                    break;
+                }
+            }
+            if (i == s_Spawn->roomIndex && px <= room->right &&
+                py <= room->bottom) {
+                cx = px;
+                cy = py;
+            }
+        }
         g_Tilemap.left = cx;
         g_Tilemap.top = cy;
         // and stand there: on a shared screen the game would move the
         // player into the other room
         s_PrefX = (cx - room->left) * 256 + 128;
         s_PrefY = (cy - room->top) * 256 + 120;
+        if (s_NearX >= 0) {
+            s_PrefX = s_NearX;
+            s_PrefY = s_NearY;
+            s_NearX = s_NearY = -1;
+        }
     }
     D_8003C730 = 1;
     s_Step = SpawnPoint_PlacePlayer;
@@ -220,6 +242,13 @@ void SpawnPoint_Warp(s32 stageId, s32 roomIndex, s32 x, s32 y) {
     // takes the stage from SpawnPoint_NextStage
     D_80097C98 = 0;
     g_GameStep = Play_PrepareNextStage;
+}
+
+// as SpawnPoint_Warp, on the floor closest to x, y (room pixels)
+void SpawnPoint_WarpNear(s32 stageId, s32 roomIndex, s32 x, s32 y) {
+    SpawnPoint_Warp(stageId, roomIndex, -1, -1);
+    s_NearX = x;
+    s_NearY = y;
 }
 
 s32 SpawnPoint_NextStage(s32 stageId) {

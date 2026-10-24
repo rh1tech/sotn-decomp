@@ -5,6 +5,7 @@
 //
 //   go STAGE ROOM [X Y]  reload STAGE (name or id) and put the player in
 //                        rooms[ROOM] at X, Y, or on the nearest floor
+//   near STAGE ROOM X Y  as go, on the floor closest to X, Y (room pixels)
 //   stat                 stage, room, position, HP, game state
 //   rooms                the current stage's rooms (rooms[] rows)
 //   god 0|1              keep HP, MP and hearts full
@@ -12,6 +13,7 @@
 //   fx 0|1|2             reduced effects: never, when running late, always
 //   ehp N                cap the HP of the stage's hittable entities
 //                        (bosses too) at N
+//   ents                 the stage's hittable entities: index, id, x, y, HP
 //   cflag I [V]          read, or set, g_CastleFlags[I]
 //   equip SLOT ID        put item ID in equipment SLOT (2: head; 0x22 is
 //                        the Holy glasses)
@@ -72,6 +74,14 @@ static void Run(char* line) {
         SpawnPoint_Warp(stage, atoi(argv[2]), argc >= 5 ? atoi(argv[3]) : -1,
                         argc >= 5 ? atoi(argv[4]) : -1);
         printf("~R OK go %s %s\n", StageName(stage), argv[2]);
+    } else if (!strcmp(argv[0], "near") && argc >= 5) {
+        stage = ParseStageName(argv[1]);
+        if (stage < 0 || g_GameState != Game_Play) {
+            printf("~R ERR near %s\n", argv[1]);
+            return;
+        }
+        SpawnPoint_WarpNear(stage, atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+        printf("~R OK near %s %s\n", StageName(stage), argv[2]);
     } else if (!strcmp(argv[0], "stat")) {
         printf("~R STAT stage=%s room=%d x=%d y=%d hp=%d/%d state=%d step=%d "
                "dead=%d at=%d,%d\n",
@@ -113,6 +123,18 @@ static void Run(char* line) {
             }
         }
         printf("~R OK ehp %d (%d entities)\n", cap, n);
+    } else if (!strcmp(argv[0], "ents")) {
+        s32 n = 0;
+        for (i = STAGE_ENTITY_START; i < LEN(g_Entities); i++) {
+            Entity* e = &g_Entities[i];
+            if (e->entityId && e->hitboxState && e->hitPoints > 0) {
+                printf("~R ENT %d %d %d %d %d\n", i, e->entityId,
+                       g_Tilemap.scrollX.i.hi + e->posX.i.hi,
+                       g_Tilemap.scrollY.i.hi + e->posY.i.hi, e->hitPoints);
+                n++;
+            }
+        }
+        printf("~R ENTS %d\n", n);
     } else if (!strcmp(argv[0], "cflag") && argc >= 2) {
         i = atoi(argv[1]);
         if (i < 0 || i >= LEN(g_CastleFlags)) {
@@ -125,7 +147,8 @@ static void Run(char* line) {
         printf("~R OK cflag %d %d\n", i, g_CastleFlags[i]);
     } else if (!strcmp(argv[0], "equip") && argc >= 3) {
         i = atoi(argv[1]);
-        if (i < 0 || i >= LEN(g_Status.equipment)) {
+        // equipment[] runs on into wornEquipment[]: seven slots
+        if (i < 0 || i >= 7) {
             printf("~R ERR equip slot %d\n", i);
             return;
         }
