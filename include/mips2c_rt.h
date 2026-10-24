@@ -28,7 +28,8 @@ extern char g_PrimBuf[];
 // PSX addresses of the overlay (scripts hold them): the stage registers
 // its data ranges (src/pc/cutscene_pc.c)
 u32 Mips2c_PsxToPc(u32 psxAddr);
-#define PSX_OVL(a) ((a) - 0x80180000u < 0x80000u)
+// (also as KUSEG 0x0018xxxx: cutscene scripts add 0x100000 to 20 bits)
+#define PSX_OVL(a) (((a) & 0x7FFFFFFFu) - 0x00180000u < 0x80000u)
 static inline u32 PSXARG(u32 a) { return PSX_OVL(a) ? Mips2c_PsxToPc(a) : a; }
 
 static inline u32 MEMADDR(u32 a) {
