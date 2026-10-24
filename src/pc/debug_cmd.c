@@ -8,6 +8,7 @@
 //   stat                 stage, room, position, HP, game state
 //   rooms                the current stage's rooms (rooms[] rows)
 //   god 0|1              keep HP, MP and hearts full
+//   hp N                 set HP (god mode off): 1 and a hit, or 0, for Game Over
 #include <game.h>
 #include "pc.h"
 #include "spawn_point.h"
@@ -84,6 +85,10 @@ static void Run(char* line) {
                    r->load.tilesetId);
         }
         printf("~R ROOMS %d\n", i);
+    } else if (!strcmp(argv[0], "hp") && argc >= 2) {
+        s_God = false;
+        g_Status.hp = atoi(argv[1]);
+        printf("~R OK hp %d\n", g_Status.hp);
     } else if (!strcmp(argv[0], "god") && argc >= 2) {
         s_God = atoi(argv[1]) != 0;
         printf("~R OK god %d\n", s_God);
