@@ -17,7 +17,8 @@
 //   fx 0|1|2             reduced effects: never, when running late, always
 //   ehp N                cap the HP of the stage's hittable entities
 //                        (bosses too) at N
-//   ents                 the stage's hittable entities: index, id, x, y, HP
+//   ents [all]           the stage's hittable entities (all: every one): index,
+//                        id, x, y, HP, step/step_s, params
 //   cflag I [V]          read, or set, g_CastleFlags[I]
 //   equip SLOT ID        put item ID in equipment SLOT (2: head; 0x22 is
 //                        the Holy glasses)
@@ -153,12 +154,14 @@ static void Run(char* line) {
         printf("~R OK ehp %d (%d entities)\n", cap, n);
     } else if (!strcmp(argv[0], "ents")) {
         s32 n = 0;
+        bool all = argc >= 2 && !strcmp(argv[1], "all");
         for (i = STAGE_ENTITY_START; i < LEN(g_Entities); i++) {
             Entity* e = &g_Entities[i];
-            if (e->entityId && e->hitboxState && e->hitPoints > 0) {
-                printf("~R ENT %d %d %d %d %d\n", i, e->entityId,
+            if (e->entityId && (all || (e->hitboxState && e->hitPoints > 0))) {
+                printf("~R ENT %d %d %d %d %d %d/%d %d\n", i, e->entityId,
                        g_Tilemap.scrollX.i.hi + e->posX.i.hi,
-                       g_Tilemap.scrollY.i.hi + e->posY.i.hi, e->hitPoints);
+                       g_Tilemap.scrollY.i.hi + e->posY.i.hi, e->hitPoints,
+                       e->step, e->step_s, e->params);
                 n++;
             }
         }
