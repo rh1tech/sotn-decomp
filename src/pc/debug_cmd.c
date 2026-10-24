@@ -7,7 +7,8 @@
 //                        rooms[ROOM] at X, Y, or on the nearest floor
 //   near STAGE ROOM X Y  as go, on the floor closest to X, Y (room pixels)
 //   stat                 stage, room, position, HP, game state
-//   rooms                the current stage's rooms (rooms[] rows)
+//   rooms                the current stage's rooms (rooms[] rows, and the
+//                        fg layer params: 0x20 is a save room)
 //   god 0|1              keep HP, MP and hearts full
 //   hp N                 set HP (god mode off): 1 and a hit, or 0, for Game Over
 //   fx 0|1|2             reduced effects: never, when running late, always
@@ -98,10 +99,16 @@ static void Run(char* line) {
         }
         for (i = 0; g_api.o.rooms[i].left != 0x40; i++) {
             const RoomHeader* r = &g_api.o.rooms[i];
+            s32 params = 0;
+            // the fg layer's params: 0x20 marks a save room
+            if (r->load.tilesetId != 0xFF && g_api.o.tileLayers &&
+                g_api.o.tileLayers[r->load.tileLayoutId].fg) {
+                params = g_api.o.tileLayers[r->load.tileLayoutId].fg->rect.params;
+            }
             // tilesetId 0xFF: a loading room (the way to another stage)
-            printf("~R ROOM %d %d %d %d %d %d %d\n", i, r->left, r->top,
+            printf("~R ROOM %d %d %d %d %d %d %d %d\n", i, r->left, r->top,
                    r->right, r->bottom, r->load.tileLayoutId,
-                   r->load.tilesetId);
+                   r->load.tilesetId, params);
         }
         printf("~R ROOMS %d\n", i);
     } else if (!strcmp(argv[0], "fx") && argc >= 2) {
