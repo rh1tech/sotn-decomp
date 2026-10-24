@@ -230,6 +230,8 @@ class Fn:
             a = ins.args
             if ins.op == "lui" and "%hi(" in a[1]:
                 st[reg(a[0])] = re.search(r"%hi\((.*)\)", a[1]).group(1)
+            elif ins.op == "addiu" and "%lo(" in a[2]:
+                st[reg(a[0])] = re.search(r"%lo\((.*)\)", a[2]).group(1)
             elif ins.op in ("addu",) and len(a) == 3 and (reg(a[1]) in st or reg(a[2]) in st):
                 s = st.get(reg(a[1])) or st.get(reg(a[2]))
                 st[reg(a[0])] = s
@@ -271,6 +273,8 @@ class Fn:
     def symaddr(self, expr):
         """native address expression of a splat symbol (+offset)"""
         name, off = self.ctx.resolve(expr)
+        if name == "g_Player" and off >= 0x374:
+            off += 4  # PC: unk20 at 0x370 is 64-bit
         self.syms.add(name)
         return "((u32)%s + 0x%X)" % (name, off & 0xFFFFFFFF) if off else "((u32)%s)" % name
 
@@ -480,7 +484,13 @@ class Fn:
                 e("%s = %s < 0x%Xu;" % (d, r(a[1]), imm(a[2]) & 0xFFFFFFFF))
             return
         if op in ("addu", "add"):
-            e("%s = %s + %s;" % (d, r(a[1]), r(a[2])))
+            # the PSX byte offset of a primitive: PC ones are bigger
+            if st.get(reg(a[1])) == "g_PrimBuf" and st.get(reg(a[2])) != "g_PrimBuf":
+                e("%s = PRIM_ADD(%s, %s);" % (d, r(a[1]), r(a[2])))
+            elif st.get(reg(a[2])) == "g_PrimBuf" and st.get(reg(a[1])) != "g_PrimBuf":
+                e("%s = PRIM_ADD(%s, %s);" % (d, r(a[2]), r(a[1])))
+            else:
+                e("%s = %s + %s;" % (d, r(a[1]), r(a[2])))
             return
         if op in ("subu", "sub"):
             e("%s = %s - %s;" % (d, r(a[1]), r(a[2])))
