@@ -10,6 +10,11 @@
 //   god 0|1              keep HP, MP and hearts full
 //   hp N                 set HP (god mode off): 1 and a hit, or 0, for Game Over
 //   fx 0|1|2             reduced effects: never, when running late, always
+//   ehp N                cap the HP of the stage's hittable entities
+//                        (bosses too) at N
+//   cflag I [V]          read, or set, g_CastleFlags[I]
+//   equip SLOT ID        put item ID in equipment SLOT (2: head; 0x22 is
+//                        the Holy glasses)
 #include <game.h>
 #include "pc.h"
 #include "spawn_point.h"
@@ -98,6 +103,34 @@ static void Run(char* line) {
         s_God = false;
         g_Status.hp = atoi(argv[1]);
         printf("~R OK hp %d\n", g_Status.hp);
+    } else if (!strcmp(argv[0], "ehp") && argc >= 2) {
+        s32 n = 0, cap = atoi(argv[1]);
+        for (i = STAGE_ENTITY_START; i < LEN(g_Entities); i++) {
+            Entity* e = &g_Entities[i];
+            if (e->entityId && e->hitboxState && e->hitPoints > cap) {
+                e->hitPoints = cap;
+                n++;
+            }
+        }
+        printf("~R OK ehp %d (%d entities)\n", cap, n);
+    } else if (!strcmp(argv[0], "cflag") && argc >= 2) {
+        i = atoi(argv[1]);
+        if (i < 0 || i >= LEN(g_CastleFlags)) {
+            printf("~R ERR cflag %d\n", i);
+            return;
+        }
+        if (argc >= 3) {
+            g_CastleFlags[i] = atoi(argv[2]);
+        }
+        printf("~R OK cflag %d %d\n", i, g_CastleFlags[i]);
+    } else if (!strcmp(argv[0], "equip") && argc >= 3) {
+        i = atoi(argv[1]);
+        if (i < 0 || i >= LEN(g_Status.equipment)) {
+            printf("~R ERR equip slot %d\n", i);
+            return;
+        }
+        g_Status.equipment[i] = strtol(argv[2], NULL, 0);
+        printf("~R OK equip %d %d\n", i, g_Status.equipment[i]);
     } else if (!strcmp(argv[0], "god") && argc >= 2) {
         s_God = atoi(argv[1]) != 0;
         printf("~R OK god %d\n", s_God);
