@@ -16,15 +16,13 @@ extern LayoutEntity* entityLayoutVertical[];
 extern PfnEntityUpdate* PfnEntityUpdates;
 extern LayoutEntity** g_pStObjLayoutHorizontal;
 extern LayoutEntity** g_pStObjLayoutVertical;
-extern u8 bo6_region_8018303C[];
+extern CutsceneSymbolRange bo6_pc_regions[];
+extern int bo6_pc_region_count;
 
-// the cutscene scripts hold PSX addresses (src/pc/cutscene_pc.c); scripts
-// and portraits all live in this raw data region
+// the cutscene scripts hold PSX addresses (src/pc/cutscene_pc.c): their
+// data and the portraits are in the raw data regions
 static void InitCutscenePc(void) {
-    static const CutsceneSymbolRange symbols[] = {
-        {bo6_region_8018303C, 0x8018303C, 0x801A6320 - 0x8018303C},
-    };
-    CutscenePcAlloc(symbols, LEN(symbols));
+    CutscenePcAlloc(bo6_pc_regions, bo6_pc_region_count);
 }
 
 void Psyz_ModuleStart(void* param) {

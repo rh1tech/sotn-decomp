@@ -198,6 +198,13 @@ for n, (a0, a1) in sorted(copies.items()):
     for a in range(a0, min(a1, END)):
         lines.append("    .byte 0x%02X" % data[a - BASE])
     lines.append("    .balign 4")
+# the regions as cutscene address ranges (src/pc/cutscene_pc.c): scripts
+# hold PSX addresses of their own data and of the portraits
+lines += ["    .balign 4", "    .global %s_pc_regions" % stage, "%s_pc_regions:" % stage]
+for r in regions:
+    lines.append("    .word %s, 0x%08X, 0x%X" % (rname(r), r[0], r[1] - r[0]))
+lines += ["    .global %s_pc_region_count" % stage, "%s_pc_region_count:" % stage,
+          "    .word %d" % len(regions)]
 open(out, "w").write("\n".join(lines) + "\n")
 print("regions:", ", ".join("%X..%X" % (r[0], r[1]) for r in regions))
 print("placed %d symbols" % len(want))
