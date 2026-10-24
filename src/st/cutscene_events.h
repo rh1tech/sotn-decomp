@@ -15,7 +15,10 @@ extern Dialogue g_Dialogue;
 extern u32 g_CutsceneFlags;
 extern PfnEntityUpdate EntityUpdates[];
 
-static void RunCutsceneEvents(void) {
+#ifndef CUTSCENE_HELPERS_GLOBAL
+static
+#endif
+void RunCutsceneEvents(void) {
     Entity* entity;
     u16 startTimer;
 

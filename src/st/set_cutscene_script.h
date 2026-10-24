@@ -6,7 +6,10 @@
 #define NUM_CUTSCENE_PRIM 7
 #endif
 
-static u8 SetCutsceneScript(u8* script) {
+#ifndef CUTSCENE_HELPERS_GLOBAL
+static
+#endif
+u8 SetCutsceneScript(u8* script) {
     Primitive* prim;
 
     g_Dialogue.primIndex[2] =

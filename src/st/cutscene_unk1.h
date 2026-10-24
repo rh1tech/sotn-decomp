@@ -7,7 +7,7 @@
 #define CUTSCENE_UNK1_UNK17 8
 #endif
 
-#ifdef VERSION_PC
+#if defined(VERSION_PC) && !defined(CUTSCENE_HELPERS_GLOBAL)
 static
 #endif
     void

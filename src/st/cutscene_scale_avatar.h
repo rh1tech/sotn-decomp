@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Animates the portrait size of the actor by enlarging or shrinking it
-static void ScaleCutsceneAvatar(const u8 ySteps) {
+#ifndef CUTSCENE_HELPERS_GLOBAL
+static
+#endif
+void ScaleCutsceneAvatar(const u8 ySteps) {
     const int PrimCount = 5;
     Primitive* prim;
     s32 primIndex;

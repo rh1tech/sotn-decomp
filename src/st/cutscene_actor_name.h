@@ -9,7 +9,10 @@ extern const char* actor_names[];
 #endif
 
 // Creates primitives for the actor name at the head of the dialogue
-static void DrawCutsceneActorName(u16 actorIndex, Entity* self) {
+#ifndef CUTSCENE_HELPERS_GLOBAL
+static
+#endif
+void DrawCutsceneActorName(u16 actorIndex, Entity* self) {
     Primitive* prim;
     s16 primIndex;
     s32 x;

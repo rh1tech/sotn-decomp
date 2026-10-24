@@ -17,7 +17,10 @@
 extern u8 cutsceneUnk3Unknown[0x380]; // bss
 #endif
 
-static void CutsceneUnk3(s16 nextCharY) {
+#ifndef CUTSCENE_HELPERS_GLOBAL
+static
+#endif
+void CutsceneUnk3(s16 nextCharY) {
     RECT rect;
     rect.x = CUTSCENE_UNK3_RECT_X;
     rect.y = (nextCharY * CUTSCENE_UNK3_RECT_H) + CUTSCENE_UNK3_RECT_Y;

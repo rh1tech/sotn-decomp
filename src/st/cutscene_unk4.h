@@ -13,7 +13,7 @@
 #define CUTSCENE_UNK4_V 12
 #endif
 
-#ifndef VERSION_HD
+#if !defined(VERSION_HD) && !defined(CUTSCENE_HELPERS_GLOBAL)
 static
 #endif
     void
