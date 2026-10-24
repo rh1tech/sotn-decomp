@@ -460,6 +460,10 @@ class Fn:
                     e("%s = 0;" % d)
                 else:
                     e("%s = %s;" % (d, self.symaddr(m.group(1))))
+            elif (imm(a[1]) << 16) & 0xFFFFFFFF == 0x1F800000:
+                # the scratchpad, by its address: PC has g_Scratchpad
+                self.syms.add("g_Scratchpad")
+                e("%s = (u32)g_Scratchpad;" % d)
             else:
                 e("%s = 0x%X;" % (d, (imm(a[1]) << 16) & 0xFFFFFFFF))
             return
