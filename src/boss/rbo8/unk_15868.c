@@ -22,7 +22,12 @@ void func_801CE3FC(s16* offsets) {
 
 INCLUDE_ASM("boss/rbo8/nonmatchings/unk_15868", func_us_80195938);
 
-static void func_801D0B40(void) {
+// the PC build calls it from code translated from asm (tools/mips2c_pc.py)
+#ifndef VERSION_PC
+static
+#endif
+    void
+    func_801D0B40(void) {
     Entity* ent;
     Entity* parent;
 

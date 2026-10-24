@@ -2,6 +2,11 @@
 #include "bo2.h"
 #include <cutscene.h>
 
+#ifdef VERSION_PC
+// EntityCutscene is translated from asm (tools/mips2c_pc.py) and calls these
+#define CUTSCENE_HELPERS_GLOBAL
+#endif
+
 extern Dialogue g_Dialogue;
 extern const char* actor_names[];
 

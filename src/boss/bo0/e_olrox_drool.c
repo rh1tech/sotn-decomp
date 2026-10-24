@@ -202,7 +202,7 @@ void func_us_801BA4AC(Entity* self) {
     }
 }
 
-void func_us_801BA724(Entity* self) UNUSED {
+UNUSED void func_us_801BA724(Entity* self) {
     DRAWENV draw;
     s16 primIndex;
     Primitive* prim;
