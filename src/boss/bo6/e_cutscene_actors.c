@@ -21,7 +21,7 @@ static bool func_us_801A8FC0(void) {
     return false;
 }
 
-static void func_801961DC(s16 arg0) UNUSED {
+static UNUSED void func_801961DC(s16 arg0) {
     s16 tileOffset;
 
     tileOffset = arg0 - g_Tilemap.height;

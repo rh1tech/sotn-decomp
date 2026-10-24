@@ -1119,6 +1119,44 @@ SET(SOURCE_FILES_BOSS_BO1
     src/boss/bo1/unk_210A8.c
 )
 
+SET(SOURCE_FILES_BOSS_BO6
+    src/pc/bosses/boss_bo6.c
+    src/boss/bo6/collision.c
+    src/boss/bo6/create_entity.c
+    src/boss/bo6/cutscene.c
+    src/boss/bo6/d_prize_drops.c
+    src/boss/bo6/e_breakable.c
+    src/boss/bo6/e_collect.c
+    src/boss/bo6/e_cutscene_actors.c
+    src/boss/bo6/e_init.c
+    src/boss/bo6/e_life_up.c
+    src/boss/bo6/e_lock_camera.c
+    src/boss/bo6/e_misc.c
+    src/boss/bo6/e_particles.c
+    src/boss/bo6/e_red_door_tiles.c
+    src/boss/bo6/e_red_door.c
+    src/boss/bo6/e_room_bg.c
+    src/boss/bo6/e_room_fg.c
+    src/boss/bo6/e_stage_name.c
+    src/boss/bo6/graphics_banks.c
+    src/boss/bo6/header.c
+    src/boss/bo6/layers.c
+    src/boss/bo6/palette_def.c
+    src/boss/bo6/popup.c
+    src/boss/bo6/prim_helpers.c
+    src/boss/bo6/richter.c
+    src/boss/bo6/sprite_banks.c
+    src/boss/bo6/st_common.c
+    src/boss/bo6/st_update.c
+    src/boss/bo6/unused.c
+    src/boss/bo6/us_39144.c
+    src/boss/bo6/us_3E79C.c
+    src/boss/bo6/bo6_pc.c
+    src/boss/bo6/gen/data_pc.S
+    src/boss/bo6/gen/e_laydef.c
+    src/boss/bo6/gen/e_layout.c
+    src/boss/bo6/gen/rooms.c
+)
 SET(SOURCE_FILES_BOSS_BO3
     src/pc/bosses/boss_bo3.c
     src/boss/bo3/background_block_init.c
@@ -2328,6 +2366,7 @@ add_overlay(lib ${SOURCE_FILES_STAGE_LIB})
 add_overlay(mad ${SOURCE_FILES_STAGE_MAD})
 add_overlay(bo1 ${SOURCE_FILES_BOSS_BO1})
 add_overlay(bo3 ${SOURCE_FILES_BOSS_BO3})
+add_overlay(bo6 ${SOURCE_FILES_BOSS_BO6})
 add_overlay(rcen ${SOURCE_FILES_STAGE_RCEN})
 add_overlay(rchi ${SOURCE_FILES_STAGE_RCHI})
 add_overlay(rbo0 ${SOURCE_FILES_BOSS_RBO0})

@@ -96,4 +96,6 @@ typedef enum RicSteps {
 
 extern PlayerState g_Ric;
 
+Entity* RicCreateEntFactoryFromEntity(Entity* entity, u32 arg1, s32 arg2);
+
 #endif // BO6_H

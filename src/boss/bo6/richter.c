@@ -520,7 +520,7 @@ extern s32 D_us_801CF3E4;
 extern s32 g_CutsceneFlags;
 
 extern s32 D_us_801D169C; // padSim + 0xB0
-static void func_us_801B5A14(s32 step);
+void func_us_801B5A14(s32 step);
 
 // not matching on PSP
 void RichterThinking(void) {
