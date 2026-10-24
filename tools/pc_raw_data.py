@@ -8,7 +8,7 @@
 # is placed at its offset; words pointing into the overlay or at known
 # globals become relocations. Big regions mix pointer tables with pixel
 # data, so there only runs of pointers (or code pointers) are relocated.
-import re, sys, struct, json, os, glob
+import re, sys, struct, json, os, glob, subprocess
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
 kind, stage, out = sys.argv[1:4]
 extra = sys.argv[4:]
@@ -23,9 +23,20 @@ segs = []
 for m in re.finditer(r"^\s*- \[0x([0-9A-Fa-f]+)(?:,\s*([.\w]+))?(?:,\s*([\w/]+))?", yaml, re.M):
     segs.append((int(m.group(1), 16) + BASE, m.group(2), m.group(3)))
 segs.append((END, "end", None))
+# the C files that still have assembly on US: their .rodata (jump tables,
+# strings of the asm functions) is not made by the C build either
+asm_files = set()
+for f in glob.glob(ROOT + "/src/%s/%s/*.c" % ("boss" if kind == "boss" else "st", stage)):
+    txt = subprocess.run(["unifdef", "-DVERSION_US", "-D_internal_version_us", "-DVERSION_PC",
+                          "-UVERSION_PSP", "-UVERSION_HD", "-U_internal_version_hd", f],
+                         capture_output=True, text=True).stdout
+    if re.search(r"INCLUDE_ASM\(", txt):
+        asm_files.add(os.path.basename(f)[:-2])
 regions = []  # raw data: no C file
 for i, (a, t, n) in enumerate(segs[:-1]):
-    if t in ("data", "bss", "rodata") and segs[i + 1][0] > a:
+    if segs[i + 1][0] <= a:
+        continue
+    if t in ("data", "bss", "rodata") or (t == ".rodata" and n in asm_files):
         regions.append((a, segs[i + 1][0], t, n))
 # merge adjacent regions
 merged = []
@@ -61,7 +72,9 @@ for n, a in ssyms.items(): sby.setdefault(a, n)
 # identifiers the stage's sources use (candidates for placement)
 undef = set(extra)
 files = glob.glob(ROOT + "/src/%s/%s/*.[ch]" % (src, stage)) + glob.glob(ROOT + "/src/%s/%s/gen/*.[ch]" % (src, stage))
-for f in list(files):  # and the shared headers they include
+i = 0
+while i < len(files):  # and the shared headers they include, recursively
+    f = files[i]; i += 1
     for inc in re.findall(r'#include\s+"([^"]+)"', open(f, errors="replace").read()):
         g = os.path.normpath(os.path.join(os.path.dirname(f), inc))
         if os.path.exists(g) and g not in files: files.append(g)
@@ -77,11 +90,48 @@ def region_of(a):
         if r[0] <= a < r[1]: return r
     return None
 def rname(r): return "%s_region_%X" % (stage, r[0])
+# identifiers the stage's C defines (file scope, not extern) on US/PC,
+# in its .c files and the headers they include; static ones can't be
+# referenced from another file
+def unifdef(f):
+    return subprocess.run(["unifdef", "-DVERSION_US", "-D_internal_version_us", "-DVERSION_PC",
+                           "-UVERSION_PSP", "-UVERSION_HD", "-U_internal_version_hd", f],
+                          capture_output=True, text=True).stdout
+cdefs, cstatic = set(), set()
+cfiles = [f for f in glob.glob(ROOT + "/src/%s/%s/*.c" % (src, stage)) if "psp" not in os.path.basename(f)]
+cfiles += glob.glob(ROOT + "/src/%s/%s/gen/*.c" % (src, stage))
+for f in cfiles:  # grows while it runs: recursive
+    for inc in re.findall(r'#include\s+"([^"]+)"', unifdef(f)):
+        g = os.path.normpath(os.path.join(os.path.dirname(f), inc))
+        if os.path.exists(g) and g not in cfiles: cfiles.append(g)
+for f in cfiles:
+    for m in re.finditer(r"^(?!extern\b)(static\s+)?(?:const\s+)?[A-Za-z_][\w\s\*]*?\b(\w+)\s*(?:\[[^\]]*\])*\s*=",
+                         unifdef(f), re.M):
+        (cstatic if m.group(1) else cdefs).add(m.group(2))
+cdefs -= cstatic
+# C symbols with a known address, in order: the one before a word owns it
+cplaced = sorted((a, n) for n, a in ssyms.items() if n in cdefs and BASE <= a < END)
+bounds = sorted(set([a for n, a in ssyms.items() if BASE <= a < END] + [r[0] for r in regions] +
+                    [r[1] for r in regions] + [sg[0] for sg in segs]))
+def c_owner(w):
+    import bisect
+    i = bisect.bisect_right([a for a, n in cplaced], w) - 1
+    if i < 0: return None
+    a, n = cplaced[i]
+    j = bisect.bisect_right(bounds, a)
+    nxt = bounds[j] if j < len(bounds) else END
+    return (n, w - a) if w < nxt else None
 want = {}
+copies = {}  # name -> (start, end): bytes the asm reads in C-owned data
 missing = []
 for n in sorted(undef):
     a = addr(n)
-    if a is not None and region_of(a): want[n] = a
+    if a is not None and region_of(a) and n not in cdefs: want[n] = a
+    elif (a is not None and BASE <= a < END and n not in cdefs and n not in cstatic
+          and n not in fn.values() and re.match(r"D_(us_)?[0-9A-F]{8}$", n)):
+        # a label inside C-defined data: give the asm a copy of its bytes
+        j = [b for b in bounds if b > a]
+        copies[n] = (a, min(j) if j else END)
 unresolved = []
 lines = ["/* SPDX-License-Identifier: AGPL-3.0-or-later */",
          "/* %s.BIN's raw data regions (asm on PSX) for the PC build, byte for" % stage.upper(),
@@ -95,7 +145,9 @@ def candidate(w):
     if rr: return ("%s + 0x%X" % (rname(rr), w - rr[0]), False)
     if BASE <= w < END:
         if w in fn: return (fn[w], True)
-        if w in sby: return (sby[w], False)
+        if w in sby and sby[w] in cdefs: return (sby[w], False)
+        o = c_owner(w)
+        if o: return ("%s + 0x%X" % o if o[1] else o[0], False)
         return None
     if w in gby: return (gby[w], False)
     if w < BASE:
@@ -139,6 +191,12 @@ for r in regions:
             a += 4; continue
         b = data[a - BASE] if a < END else 0
         lines.append("    .byte 0x%02X" % b); a += 1
+    lines.append("    .balign 4")
+for n, (a0, a1) in sorted(copies.items()):
+    lines.append("    .global %s" % n)
+    lines.append("%s:  /* copy of 0x%08X..0x%08X, inside C data */" % (n, a0, a1))
+    for a in range(a0, min(a1, END)):
+        lines.append("    .byte 0x%02X" % data[a - BASE])
     lines.append("    .balign 4")
 open(out, "w").write("\n".join(lines) + "\n")
 print("regions:", ", ".join("%X..%X" % (r[0], r[1]) for r in regions))
