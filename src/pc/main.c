@@ -81,6 +81,7 @@ static void printHelp(void) {
     printf("  --replay-and-exit  quit automatically once the replay or demo "
            "ends\n");
     printf("  --replay-fast      disable frame limit during replay or demo\n");
+    printf("  --play-test        god mode and enemies at 1 HP\n");
     printf("  --help             show this help message\n");
 }
 static void printAllowedParams(const char* allowedValues[], int n) {
@@ -117,6 +118,9 @@ static bool parseArgs(
         }
         if (strcmp(argv[i], "--disk") == 0 && i + 1 < argc) {
             outParams->diskPath = argv[++i];
+        } else if (strcmp(argv[i], "--play-test") == 0) {
+            void DebugCmd_SetPlayTest(bool on);
+            DebugCmd_SetPlayTest(true);
         } else if (strcmp(argv[i], "--disc-only") == 0) {
             outParams->discOnly = true;
         } else if (strcmp(argv[i], "--stage") == 0 && i + 1 < argc) {

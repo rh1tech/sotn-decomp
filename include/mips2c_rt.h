@@ -25,7 +25,16 @@ _Static_assert(sizeof(void*) == 4, "mips2c output needs 32-bit pointers");
 #define PRIM_SIZE_PC 0x38
 #define PRIM_COUNT 0x500
 extern char g_PrimBuf[];
+// PSX addresses of the overlay (scripts hold them): the stage registers
+// its data ranges (src/pc/cutscene_pc.c)
+u32 Mips2c_PsxToPc(u32 psxAddr);
+#define PSX_OVL(a) ((a) - 0x80180000u < 0x80000u)
+static inline u32 PSXARG(u32 a) { return PSX_OVL(a) ? Mips2c_PsxToPc(a) : a; }
+
 static inline u32 MEMADDR(u32 a) {
+    if (PSX_OVL(a)) {
+        a = Mips2c_PsxToPc(a);
+    }
     u32 rel = a - (u32)(uintptr_t)g_PrimBuf;
     if (rel < PRIM_COUNT * PRIM_SIZE_PC && rel % PRIM_SIZE_PC >= 4) {
         return a + 4;
@@ -44,7 +53,9 @@ static inline u32 PRIM_ADD(u32 base, u32 off) {
 
 typedef u32 (*Mips2cFn)(u32, u32, u32, u32, u32, u32, u32, u32);
 #define CALL(fn, a0, a1, a2, a3, a4, a5, a6, a7)                               \
-    ((Mips2cFn)(uintptr_t)(fn))(a0, a1, a2, a3, a4, a5, a6, a7)
+    ((Mips2cFn)(uintptr_t)(fn))(PSXARG(a0), PSXARG(a1), PSXARG(a2),           \
+                                PSXARG(a3), PSXARG(a4), PSXARG(a5),           \
+                                PSXARG(a6), PSXARG(a7))
 
 // unaligned word access, little endian: lwl/swl name the highest byte
 // (offset + 3), lwr/swr the lowest; a pair moves the whole word

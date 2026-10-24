@@ -31,6 +31,20 @@ void CutscenePcAlloc(const CutsceneSymbolRange* symbols, int count) {
     }
 }
 
+// the overlay's PSX address psxAddr as a PC one, or psxAddr itself when it
+// is not in a registered range: code translated from asm
+// (include/mips2c_rt.h) builds such addresses from its data
+u32 Mips2c_PsxToPc(u32 psxAddr) {
+    u32 addr = NORMALIZE_PSX_ADDR(psxAddr);
+    for (int i = 0; i < _symbolCount; i++) {
+        u32 base = NORMALIZE_PSX_ADDR(_symbols[i].psxAddr);
+        if (addr >= base && addr < base + _symbols[i].size) {
+            return (u32)(uintptr_t)((u8*)_symbols[i].pcAddr + (addr - base));
+        }
+    }
+    return psxAddr;
+}
+
 u8* CutsceneAddrToPc(u32 psxAddr) {
     u32 addr = NORMALIZE_PSX_ADDR(psxAddr);
     for (int i = 0; i < _symbolCount; i++) {

@@ -10,6 +10,8 @@
 //   rooms                the current stage's rooms (rooms[] rows, and the
 //                        fg layer params: 0x20 is a save room)
 //   god 0|1              keep HP, MP and hearts full
+//   playtest 0|1         god mode, and every enemy (bosses too) at 1 HP:
+//                        a whole play-through quickly (also --play-test)
 //   hp N                 set HP (god mode off): 1 and a hit, or 0, for Game Over
 //   fx 0|1|2             reduced effects: never, when running late, always
 //   ehp N                cap the HP of the stage's hittable entities
@@ -36,6 +38,9 @@ const char* StageName(int stageId);
 RoomLoadDef* PcCurrentRoomLoad(void);
 
 static bool s_God;
+static bool s_PlayTest;
+
+void DebugCmd_SetPlayTest(bool on) { s_PlayTest = on; }
 
 static s32 CurrentRoom(void) {
     s32 i;
@@ -161,6 +166,9 @@ static void Run(char* line) {
         }
         g_Status.equipment[i] = strtol(argv[2], NULL, 0);
         printf("~R OK equip %d %d\n", i, g_Status.equipment[i]);
+    } else if (!strcmp(argv[0], "playtest") && argc >= 2) {
+        s_PlayTest = atoi(argv[1]) != 0;
+        printf("~R OK playtest %d\n", s_PlayTest);
     } else if (!strcmp(argv[0], "god") && argc >= 2) {
         s_God = atoi(argv[1]) != 0;
         printf("~R OK god %d\n", s_God);
@@ -172,7 +180,16 @@ static void Run(char* line) {
 void DebugCmd_OnFrame(void) {
     char line[96];
 
-    if (s_God && g_GameState == Game_Play) {
+    if (s_PlayTest && g_GameState == Game_Play) {
+        s32 i;
+        for (i = STAGE_ENTITY_START; i < LEN(g_Entities); i++) {
+            Entity* e = &g_Entities[i];
+            if (e->entityId && e->hitboxState && e->hitPoints > 1) {
+                e->hitPoints = 1;
+            }
+        }
+    }
+    if ((s_God || s_PlayTest) && g_GameState == Game_Play) {
         g_Status.hp = g_Status.hpMax;
         g_Status.mp = g_Status.mpMax;
         g_Status.hearts = g_Status.heartsMax;
