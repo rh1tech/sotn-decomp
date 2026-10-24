@@ -35,6 +35,7 @@ enum SpawnPointStep {
     SpawnPoint_WaitLoad, // SpawnPoint_Warp: the stage is (re)loading
     SpawnPoint_PickRoom,
     SpawnPoint_PlacePlayer,
+    SpawnPoint_Settle, // placed: clear the load flag once the room plays
 };
 
 static enum SpawnPointStep s_Step = SpawnPoint_Off;
@@ -77,6 +78,18 @@ static bool SpawnPoint_FindFloor(s32* outX, s32* outY);
 void SpawnPoint_OnFrame(void) {
     const RoomHeader* room;
 
+    // D_8003C730 = 1 ("loaded from a save") is what places the player in
+    // PickRoom's room; a save room's coffin clears it, nothing else does,
+    // and while it is set every stage exit reloads the current stage
+    if (s_Step == SpawnPoint_Settle) {
+        if (g_GameState == Game_Play && g_GameStep == Play_Default) {
+            if (D_8003C730 == 1) {
+                D_8003C730 = 0;
+            }
+            s_Step = SpawnPoint_Off;
+        }
+        return;
+    }
     if (s_Step == SpawnPoint_WaitLoad) {
         // the new overlay is in once the load sequence reaches Play_Init
         if (g_GameState != Game_Play || g_GameStep != Play_Init ||
@@ -161,7 +174,7 @@ static void SpawnPoint_PlacePlayerNow(void) {
     if (s_Step != SpawnPoint_PlacePlayer) {
         return;
     }
-    s_Step = SpawnPoint_Off;
+    s_Step = SpawnPoint_Settle;
 
     x = s_Spawn->x;
     y = s_Spawn->y;
