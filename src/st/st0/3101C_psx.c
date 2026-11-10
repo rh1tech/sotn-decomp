@@ -97,9 +97,38 @@ void func_801B1198(s16 yVal) {
     ClearImage(&rect, 0, 0, 0);
 }
 
+#ifdef VERSION_PC
+// the Shift-JIS codes the full-width character constants below have on
+// the PS1 (the PC sources are UTF-8)
+#define SJ_a 0x8281 // 'ａ'
+#define SJ_A 0x8260 // 'Ａ'
+#define SJ_COMMA 0x8143 // '，'
+#define SJ_PERIOD 0x8144 // '．'
+#define SJ_APOSTROPHE 0x8166 // '’'
+#endif
+
 u16* func_801B11E8(u8 ch) {
     u16 jCh;
-#ifndef VERSION_PC
+#ifdef VERSION_PC
+    if (ch >= 'a') {
+        jCh = (SJ_a - 'a') + ch;
+    } else if (ch >= 'A') {
+        jCh = (SJ_A - 'A') + ch;
+    } else if (ch == ',') {
+        jCh = SJ_COMMA;
+    } else if (ch == '.') {
+        jCh = SJ_PERIOD;
+    } else if (ch == '\'') {
+        jCh = SJ_APOSTROPHE;
+    } else if (ch == ' ') {
+        return NULL;
+    } else {
+        jCh = (SJ_A - 'A') + ch;
+        if (ch >= 'a') {
+            ++jCh;
+        }
+    }
+#else
     if (ch >= 'a') {
         jCh = ('ａ' - 'a') + ch;
     } else if (ch >= 'A') {
@@ -118,8 +147,6 @@ u16* func_801B11E8(u8 ch) {
             ++jCh;
         }
     }
-#else
-    jCh = 'A';
 #endif
 
     return g_api.func_80106A28(jCh, 0);

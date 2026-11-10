@@ -8,6 +8,10 @@
 //
 #include <stage.h>
 
+#ifdef VERSION_PC
+u16 Pc_NextSjis(const char** str); // src/pc/krom.c
+#endif
+
 const char* BlitChar(const char* str, u16* xOffset, u8* pix, u16 stride) {
     const u16 DOUBLE_SPACE = 0x8140;
     const u16 RIGHT_DOUBLE_QUOTATION_MARK = 0x8168;
@@ -35,7 +39,12 @@ const char* BlitChar(const char* str, u16* xOffset, u8* pix, u16 stride) {
             ch = DOUBLE_SPACE;
             chSize = 2;
         } else {
+#ifdef VERSION_PC
+            str--;
+            ch = Pc_NextSjis(&str); // UTF-8 in the PC sources
+#else
             ch = *str++ | (ch << 8);
+#endif
             if (ch == DOUBLE_SPACE) {
                 chSize = 2;
             }

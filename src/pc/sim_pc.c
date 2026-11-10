@@ -333,8 +333,18 @@ bool LoadFilePc(const struct FileUseContent* file) {
         LoadStageTileset(sim->addr, file->length, 0);
         StoreImage(&g_Vram.D_800ACDB8, g_Clut[0]);
         break;
-    case SIM_12:
+    case SIM_11: // prologue end picture (F_PROLO0.BIN), as LoadFileSimToMem
+        LoadStageTileset(sim->addr, file->length, 0);
+        DrawSync(0);
+        StoreImage(&g_Vram.D_800ACDB8, (u_long*)g_Clut[0]);
+        StoreImage(&g_Vram.D_800ACDB8, (u_long*)g_Clut[2]);
+        DrawSync(0);
+        LoadImage(&g_Vram.D_800ACDB0, (u_long*)g_Clut[2]);
+        break;
+    case SIM_12: // prologue end picture (F_PROLO1.BIN)
         LoadStageTileset(sim->addr, file->length, 0x100);
+        DrawSync(0);
+        break;
     case SIM_13:
         LoadStageTileset(sim->addr, file->length, 0x100);
         LoadImage(&g_Vram.D_800ACD98, D_800A04CC);
